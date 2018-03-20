@@ -1,0 +1,22 @@
+#gameDisplay{
+	width: 500px;
+	height:500px;
+	position: relative;
+}
+
+.displayImg {
+	position: absolute;
+	height:500px;
+	width:500px;
+	left: 0px;
+	top: 0px;
+}
+
+.button,
+.buttonImg {
+	cursor: pointer;
+	width: 100px;
+	height:100px;
+	float: left;
+}
+
