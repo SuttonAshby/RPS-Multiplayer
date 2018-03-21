@@ -48,16 +48,12 @@ var game = {
 		$("#buttons").empty()
 		//BUG on smaller view finder form covers buttons making them unclickable 
 		for(var i = 0; i < 5; i++){
-			var element = $("<div>")
 			var id = game.displayImgs[i + 5].split(".")
-			$(element).addClass("button")
-					  .attr("id", id[0])
 			var btnImg = $("<img>")
 			$(btnImg).attr("src", "assets/images/" + game.displayImgs[i])
-					 .attr("id", id[0] + "pic")
+					 .attr("id", id[0])
 					 .addClass("buttonImg")
-			$(element).append(btnImg)
-			$("#buttons").append(element)
+			$("#buttons").append(btnImg)
 		}
 	},
 	initialize: function(){
@@ -81,21 +77,9 @@ var game = {
 			game.players = snapshot.val()
 		});
 
-		//initial snapshot to load any players already in game
-		//BUG seems to run twice
-		var players = database.ref("Players")
-		players.once("value", function(snapshot){
-			snapshot.forEach(function(child){
-				var element = $("<div>")
-				var player = child.val().name
-				var wins = child.val().wins
-				var losses = child.val().losses
-				$("tbody").append("<tr><td>" + player + "</td><td>" + wins + "</td><td>" + losses + "<td></tr>")	
-			})
-		})
 
 		//sets on click events for buttons
-		$("#buttons").on("click", ".button", game.playerChoice)
+		$("#buttons").on("click", ".buttonImg", game.playerChoice)
 		$("#submit").on("click", game.playerName)
 
 		// sets connection information and onDisconnect functionality
@@ -126,6 +110,11 @@ var game = {
 				
 			});
 
+		var update = function(){
+			$("#timer").html(moment().format(":ss"));
+		}
+		setInterval(update, 1000)
+
 	},
 	getOpponentPicks: function(){
 
@@ -142,7 +131,7 @@ var game = {
 
 		})
 		for(var i = 0; i < game.opponentPicks.length; i++){
-			var opponentColor = '"#' + game.opponentPicks[i] + 'pic"';
+			var opponentColor = '"#' + game.opponentPicks[i] + '"';
 			$(JSON.parse(opponentColor)).addClass("opponentPick")
 			var choice = '".' + game.opponentPicks[i] + 'Img"';
 			$(JSON.parse(choice)).css("visibility", "visible")
@@ -253,11 +242,9 @@ var game = {
 		scores.once("value", function(snapshot){
 			$("tbody").empty()
 			snapshot.forEach(function(child){
-				var element = $("<div>")
 				var player = child.val().name
 				var wins = child.val().wins
-				var losses = child.val().losses
-				$("tbody").append("<tr><td>" + player + "</td><td>" + wins + "</td><td>" + losses + "<td></tr>")	
+				$("tbody").append("<tr><td>" + player + "</td><td>" + wins + "</td></tr>")	
 			})
 		})
 		database.ref("matchHappening").set(false)
@@ -272,7 +259,6 @@ var game = {
 			database.ref("Players").child(game.playerID).set({
 				name: game.playerID,
 				wins: 0,
-				losses: 0,
 				playerPick: game.playerPick
 			})
 			game.players++;
@@ -291,8 +277,7 @@ var game = {
 		//BUG sometimes posts undefined data (probably on removal of child OR when countdown finishes) **possibly resolved now**
 		var player = snapshot.val().name
 		var wins = snapshot.val().wins
-		var losses = snapshot.val().losses
-		$("tbody").append("<tr><td>" + player + "</td><td>" + wins + "</td><td>" + losses + "<td></tr>")
+		$("tbody").append("<tr><td>" + player + "</td><td>" + wins  + "</td></tr>")
 
 	},
 	rematch: function(){
