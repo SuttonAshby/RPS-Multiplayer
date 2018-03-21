@@ -12,11 +12,22 @@
 	top: 0px;
 }
 
-.button,
+.button {
+	border-radius: 50%
+}
 .buttonImg {
 	cursor: pointer;
 	width: 100px;
 	height:100px;
 	float: left;
+	margin: 10px;
+	border-radius: 50%
 }
 
+.playerPick {
+	box-shadow: 0px 0px 10px 10px green;
+}
+
+.opponentPick {
+	box-shadow: 0px 0px 10px 10px red;
+}
