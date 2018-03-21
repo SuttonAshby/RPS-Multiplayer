@@ -18,32 +18,6 @@ var game = {
       apiKey: "AIzaSyCLbEjKvRPiZdO3I6ADlExj_N0ZD60nATk",
       databaseURL: "https://rpsmulti-fd6d4.firebaseio.com",
     },
-	decrementTimer: function(){
-		if(game.timer > 1){
-			game.timer--;
-			$("#timer").text(game.timer + "Secs")
-		} else {
-			clearInterval(game.countdownID);
-			$("#timer").text("Time is Up");
-			game.timerRunning = false;
-			database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
-
-			//lights up players button choice
-			var colorPick = '"#' + game.playerPick + 'pic"'
-			$(JSON.parse(colorPick)).addClass("playerPick")
-
-			//gets current opponent picks and then updates score
-			setTimeout(game.getOpponentPicks, 3000)
-			setTimeout(game.updateScore, 4000)
-		}
-	},
-	countdown: function(){
-		$("#info").text("Match is starting")
-		game.matchHappening = true;
-		database.ref().child("matchHappening").set(game.matchHappening);
-		game.timerRunning = true;
-		game.countdownID = setInterval(game.decrementTimer, 1000)
-	},
 	loadButtons: function(){
 		$("#buttons").empty()
 		//BUG on smaller view finder form covers buttons making them unclickable 
@@ -114,15 +88,15 @@ var game = {
 
 
 		//Initiate match once there is more than one player and there isn't already a match in progress
+		//NEED TO REFACTOR TO NO TIMER
 		var playerCount = database.ref()
 			playerCount.on("value", function(snap){
 				if(snap.child("playerCount").val() > 1 && snap.child("matchHappening").val() !== true){
 					playerCount.off()
-					game.countdown()
 				}
-				// if(snap.child("matchHappening") === true){
-				// 	playerCount.off()
-				// }
+				if(snap.child("matchHappening") === true){
+					playerCount.off()
+				}
 				
 			});
 
@@ -296,16 +270,16 @@ var game = {
 
 	},
 	rematch: function(){
-		game.allVis();
-		game.loadButtons();
-		game.timer = 20;
-		game.opponentPick = [];
-		game.playerPick = "noPick"
-		game.countdown();
+		// game.allVis();
+		// game.loadButtons();
+		// game.timer = 20;
+		// game.opponentPick = [];
+		// game.playerPick = "noPick"
+		
 
 	}
 
-}
+} 
 
 
 game.initialize()
