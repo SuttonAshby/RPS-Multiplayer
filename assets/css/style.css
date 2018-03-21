@@ -13,13 +13,19 @@
 }
 
 .button {
+	border-radius: 50%;
+	cursor: pointer;
+	width: 100px;
+	height:100px;
+	float: left;
+	margin: 10px;
 	border-radius: 50%
 }
 .buttonImg {
 	cursor: pointer;
 	width: 100px;
 	height:100px;
-	float: left;
+	/*float: left;*/
 	margin: 10px;
 	border-radius: 50%
 }
