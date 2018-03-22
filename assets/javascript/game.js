@@ -7,9 +7,7 @@ var game = {
 	playerID: undefined, //local player Name
 	score: 0, // local player score
 	playerPick: "noPick", //players choice to be pushed to firebase
-	countdownID: undefined, //for clearing interval
-	timer: 20, //timer length
-	momentTimer: undefined,
+	momentTimer: undefined, //timer
 	timerRunning: false, //check if timer is running
 	database: undefined, // for reference to firebase
 	players: 0, //number of player need to get value from firebase and update
@@ -19,31 +17,14 @@ var game = {
       apiKey: "AIzaSyCLbEjKvRPiZdO3I6ADlExj_N0ZD60nATk",
       databaseURL: "https://rpsmulti-fd6d4.firebaseio.com",
     },
-	decrementTimer: function(){
-		if(game.timer > 1){
-			game.timer--;
-			$("#info").text(game.timer + "Secs")
-		} else {
-			clearInterval(game.countdownID);
-			$("#info").text("Time is Up");
-			game.timerRunning = false;
-			database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
-
-			//lights up players button choice
-			var colorPick = '"#' + game.playerPick + '"'
-			$(JSON.parse(colorPick)).addClass("playerPick")
-
-			//gets current opponent picks and then updates score
-			setTimeout(game.getOpponentPicks, 3000)
-			setTimeout(game.updateScore, 4000)
-		}
-	},
 	countdown: function(){
-		$("#info").text("Match is starting")
-		game.matchHappening = true;
-		database.ref().child("matchHappening").set(game.matchHappening);
-		game.timerRunning = true;
-		game.countdownID = setInterval(game.decrementTimer, 1000)
+		var timeLeft = 60 - moment().format("ss"); 
+		if(timeLeft === 60){
+			timeLeft = 0;
+		}
+		$("#timer").html(timeLeft);
+		game.momentTimer = timeLeft
+		database.ref().child("Timer").set(timeLeft)
 	},
 	loadButtons: function(){
 		$("#buttons").empty()
@@ -94,44 +75,28 @@ var game = {
 			}
 		})
 
+		var checkMatch = database.ref("matchHappening")
+		checkMatch.on("value", function(snapshot){
+			game.matchHappening = snapshot.val()
+			console.log(game.matchHappening)
+		})
+
 		// updates player count locally when firebase updates player count
 		database.ref("Players").on("child_added", game.updatePlayerList)
 
-
-		//Initiate match once there is more than one player and there isn't already a match in progress
-		// var playerCount = database.ref()
-		// 	playerCount.on("value", function(snap){
-		// 		if(snap.child("playerCount").val() > 1 && snap.child("matchHappening").val() !== true){
-		// 			playerCount.off()
-		// 			game.countdown()
-		// 		}
-		// 		// if(snap.child("matchHappening") === true){
-				// 	playerCount.off()
-				// }
-				
-			// });
-
-		var update = function(){
-			var timeLeft = 60 - moment().format("ss"); 
-			if(timeLeft === 60){
-				timeLeft = 0;
-			}
-			$("#timer").html(timeLeft);
-			game.momentTimer = timeLeft
-			database.ref().child("Timer").set(timeLeft)
-		}
-		setInterval(update, 1000)
+		setInterval(game.countdown, 1000)
 
 		var gameTimer = database.ref("Timer")
 		gameTimer.on("value", function(snapshot){
-			// console.log(game.players)
 			if(snapshot.val() === 30 && game.players >= 1){
 				$("#info").html("Match is starting<br>Pick your choice")
+				database.ref("matchHappening").set(true)
 			} else if(snapshot.val() === 0){
 				$("#info").html("Determining what others picked")
 				database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
 				var colorPick = '"#' + game.playerPick + '"'
 				$(JSON.parse(colorPick)).addClass("playerPick")
+				database.ref("matchHappening").set(false)
 				
 			} else if(snapshot.val() === 55){
 				game.getOpponentPicks()
@@ -150,10 +115,6 @@ var game = {
 
 	},
 	getOpponentPicks: function(){
-
-		//WORKS BUT UNSTABLE
-		//including own score doesn't matter in positive only scoring,
-		//maybe remove check system.
 		var matchplayers = database.ref("Players")
 		matchplayers.once("value", function(snapshot){
 			snapshot.forEach(function(child){
@@ -178,18 +139,21 @@ var game = {
 		$(".displayImg").css("visibility", "visible");
 	},
 	playerChoice: function(){
-		game.allInvis();
-		var choice = '".' + $(this).attr("id") + 'Img"';
-		$(JSON.parse(choice)).css("visibility", "visible")
-		game.playerPick = $(this).attr("id")
-
+		if(){
+			game.allInvis();
+			var choice = '".' + $(this).attr("id") + 'Img"';
+			$(JSON.parse(choice)).css("visibility", "visible")
+			game.playerPick = $(this).attr("id")
+		}
 		
 	},
 	updateScore: function(){
-		//NEED TO ADD GETTING A POINT IF THE OPPONENT DOESNT PICK
 		//calculates wins for local player and relevent  visuals
 		for(var i = 0; i < game.opponentPicks.length; i++){
-			if(game.playerPick === "Rock" && (game.opponentPicks[i] === "Lizard" || game.opponentPicks[i] === "Scissors")){
+			if(game.playerPick !== "noPick" && game.opponentPicks[i] === "noPick"){
+				game.score++;
+				database.ref("Players").child(game.playerID).update({wins: game.score})
+			} else if(game.playerPick === "Rock" && (game.opponentPicks[i] === "Lizard" || game.opponentPicks[i] === "Scissors")){
 				game.score++;
 				database.ref("Players").child(game.playerID).update({wins: game.score})
 				if(game.opponentPicks[i] === "Lizard"){
@@ -266,9 +230,6 @@ var game = {
 			}
 		}
 
-		// setTimeout(game.displayScore, 3000)
-
-		
 	},
 	displayScore: function(){
 		var scores = database.ref("Players")
@@ -280,11 +241,6 @@ var game = {
 				$("tbody").append("<tr><td>" + player + "</td><td>" + wins + "</td></tr>")	
 			})
 		})
-		database.ref("matchHappening").set(false)
-
-
-
-
 	},
 	playerName: function(){
 		if(game.playerID === undefined){
@@ -307,7 +263,6 @@ var game = {
 		
 	},
 	updatePlayerList: function(snapshot){
-		//BUG sometimes posts undefined data (probably on removal of child OR when countdown finishes) **possibly resolved now**
 		var player = snapshot.val().name
 		var wins = snapshot.val().wins
 		$("tbody").append("<tr><td>" + player + "</td><td>" + wins  + "</td></tr>")
