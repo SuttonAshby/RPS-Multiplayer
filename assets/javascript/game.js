@@ -78,11 +78,11 @@ var game = {
 		var checkMatch = database.ref("matchHappening")
 		checkMatch.on("value", function(snapshot){
 			game.matchHappening = snapshot.val()
-			console.log(game.matchHappening)
 		})
 
 		// updates player count locally when firebase updates player count
 		database.ref("Players").on("child_added", game.updatePlayerList)
+		database.ref("Players").on("child_removed", game.removePlayerList)
 
 		setInterval(game.countdown, 1000)
 
@@ -139,7 +139,7 @@ var game = {
 		$(".displayImg").css("visibility", "visible");
 	},
 	playerChoice: function(){
-		if(){
+		if(game.matchHappening){
 			game.allInvis();
 			var choice = '".' + $(this).attr("id") + 'Img"';
 			$(JSON.parse(choice)).css("visibility", "visible")
@@ -238,7 +238,7 @@ var game = {
 			snapshot.forEach(function(child){
 				var player = child.val().name
 				var wins = child.val().wins
-				$("tbody").append("<tr><td>" + player + "</td><td>" + wins + "</td></tr>")	
+				$("tbody").append("<tr id='" + game.playerID + "'><td>" + player + "</td><td>" + wins  + "</td></tr>")	
 			})
 		})
 	},
@@ -265,8 +265,11 @@ var game = {
 	updatePlayerList: function(snapshot){
 		var player = snapshot.val().name
 		var wins = snapshot.val().wins
-		$("tbody").append("<tr><td>" + player + "</td><td>" + wins  + "</td></tr>")
+		$("tbody").append("<tr id='" + snapshot.val().name + "'><td>" + player + "</td><td>" + wins  + "</td></tr>")
 
+	},
+	removePlayerList: function(snapshot){
+		$("tbody").remove("'#" + snapshot.val().name + "'")
 	},
 	rematch: function(){
 		game.allVis();
