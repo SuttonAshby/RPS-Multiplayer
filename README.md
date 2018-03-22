@@ -24,4 +24,5 @@ STILL TO DO
 BUGS
 very rarely will update playerlist with undefined info
 very rarely the player count gets out of sync which can lead to the matches not starting
+possible bug with winning on mobile and not getting the point
 jQuery isn't happy with initialization of tooltip even though it works.
