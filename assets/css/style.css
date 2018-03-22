@@ -14,9 +14,25 @@ table {
 	font-size: 16px;
 }
 
-button, label, input, {
+button, label, input, h2, p{
 	font-family: 'Inconsolata', monospace;
 	font-size: 18px;
+}
+
+p {
+	font-size: 14px;
+	text-align: left;
+	line-height: normal;
+	margin: 1px;
+
+}
+
+h2 {
+	text-align: left;
+	font-weight: bold;
+	font-size: 20px;
+	color: black;
+	border-bottom: solid black 2px;
 }
 
 #timer{
@@ -41,6 +57,18 @@ button, label, input, {
 
 .col-md-3 {
 	background: lightgrey;
+	padding-bottom: 20px;
+}
+
+#chat {
+	background: white;
+	margin-top: 5px;
+	text-align: center;
+}
+
+.chatBtn {
+	width: 45%;
+	margin-bottom: 5px;
 }
 
 #buttons{

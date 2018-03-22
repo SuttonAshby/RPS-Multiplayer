@@ -4,6 +4,9 @@ var game = {
 				  "Rock.png", "Paper.png", "Scissors.png", "Lizard.png", "Spock.png", 
 				  "LbP.png", "LbV.png", "PbR.png", "PbV.png", "RbL.png", 
 				  "RbS.png", "SbL.png", "SbP.png", "VbR.png", "VbS.png"],
+	greetArray:["Hello", "Hi", "Greetings", "Salutations", "Bonjour", "Well Met",],
+	tauntArray:["I will crush you!","Prepare to Lose","MWAHAHAHA","I Win, You Lose"],
+	praiseArray:["Wow!!","Cool!","Nice One","Well Done","Good on you, mate",],
 	playerID: undefined, //local player Name
 	score: 0, // local player score
 	playerPick: "noPick", //players choice to be pushed to firebase
@@ -50,6 +53,7 @@ var game = {
 			$("#gameDisplay").append(element)
 		}
 
+		//activates tooltip
 		$(function () {
  			$('[data-toggle="tooltip"]').tooltip()
 		})
@@ -64,10 +68,16 @@ var game = {
 			game.players = snapshot.val()
 		});
 
+		database.ref("Chatlog").set(null)
+
 
 		//sets on click events for buttons
 		$("#buttons").on("click", ".buttonImg", game.playerChoice)
 		$("#submit").on("click", game.playerName)
+		$("#bluff").on("click", game.chatBluff)
+		$("#greet").on("click", game.chatGreet)
+		$("#taunt").on("click", game.chatTaunt)
+		$("#praise").on("click", game.chatPraise)
 
 		// sets connection information and onDisconnect functionality
 		var connectionsRef = database.ref("/connections")
@@ -87,6 +97,8 @@ var game = {
 
 		// updates player count locally when firebase updates player count
 		database.ref("Players").on("child_added", game.updatePlayerList)
+		database.ref("Chatlog").on("child_added", game.updateChatlog)
+
 
 		setInterval(game.countdown, 1000)
 
@@ -283,6 +295,8 @@ var game = {
 			game.players = snapshot.val()
 			database.ref("playerCount").onDisconnect().set(--game.players)
 		})
+
+		
 		
 	},
 	updatePlayerList: function(snapshot){
@@ -291,6 +305,11 @@ var game = {
 		$("tbody").append("<tr><td>" + player + "</td><td>" + wins  + "</td></tr>")
 
 	},
+	updateChatlog: function(snapshot){
+		var player = snapshot.val().name
+		var message = snapshot.val().message
+		$("#chatlog").prepend("<p><b><em>" + player + ": </em></b>" + message + "</p>")
+	},
 	rematch: function(){
 		game.allVis();
 		game.loadButtons();
@@ -298,7 +317,29 @@ var game = {
 		game.opponentPicks = [];
 		game.playerPick = "noPick"
 
-	}
+	},
+	chatBluff: function(){
+		if(game.playerID !== undefined && game.playerPick !== "noPick"){
+			database.ref("Chatlog").push({name: game.playerID,
+										  message: "I'm picking " + game.playerPick})
+		}
+	},
+	chatGreet: function(){
+		var message = game.greetArray[Math.floor(Math.random() * game.greetArray.length)]
+		database.ref("Chatlog").push({name: game.playerID,
+										  message: message})
+	},
+	chatTaunt: function(){
+		var message = game.tauntArray[Math.floor(Math.random() * game.tauntArray.length)]
+		database.ref("Chatlog").push({name: game.playerID,
+										  message: message})
+	},
+	chatPraise: function(){
+		var message = game.praiseArray[Math.floor(Math.random() * game.praiseArray.length)]
+		database.ref("Chatlog").push({name: game.playerID,
+										  message: message})
+	},
+
 
 }
 
