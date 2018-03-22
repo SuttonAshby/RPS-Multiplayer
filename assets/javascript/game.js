@@ -12,6 +12,7 @@ var game = {
 	players: 0, //number of player need to get value from firebase and update
 	opponentPicks: [], //stores array of opponent choices pulled from firebase
 	matchHappening: false, //store to firebase to check if a match is already running
+	firstMatch: true,
 	config: {
       apiKey: "AIzaSyCLbEjKvRPiZdO3I6ADlExj_N0ZD60nATk",
       databaseURL: "https://rpsmulti-fd6d4.firebaseio.com",
@@ -21,19 +22,20 @@ var game = {
 		if(timeLeft === 60){
 			timeLeft = 0;
 		}
-		$("#timer").html(timeLeft);
+		$("#timer").html("TIME REMAINING:  " + timeLeft);
 		game.momentTimer = timeLeft
 		database.ref().child("Timer").set(timeLeft)
 	},
 	loadButtons: function(){
 		$("#buttons").empty()
-		//BUG on smaller view finder form covers buttons making them unclickable 
 		for(var i = 0; i < 5; i++){
 			var id = game.displayImgs[i + 5].split(".")
 			var btnImg = $("<img>")
 			$(btnImg).attr("src", "assets/images/" + game.displayImgs[i])
 					 .attr("id", id[0])
 					 .addClass("buttonImg")
+					 .attr("data-toggle", "tooltip")
+					 .attr("title", id[0])
 			$("#buttons").append(btnImg)
 		}
 	},
@@ -47,6 +49,10 @@ var game = {
 					  .addClass("displayImg")
 			$("#gameDisplay").append(element)
 		}
+
+		$(function () {
+ 			$('[data-toggle="tooltip"]').tooltip()
+		})
 
     	firebase.initializeApp(game.config);
     	database = firebase.database()
@@ -89,27 +95,45 @@ var game = {
 
 	},
 	gameTiming: function(snapshot){
-		if(snapshot.val() === 30 && game.players >= 1){
-			$("#info").html("Match is starting<br>Pick your choice")
+		var tempScore = game.score
+		if(snapshot.val() === 34 && game.players >= 1){
+			$("#info").html("Match is starting in...")
+		} else if(snapshot.val() === 33 && game.players >= 1){
+			$("#info").html("3...")
+		} else if(snapshot.val() === 32 && game.players >= 1){
+			$("#info").html("2...")
+		} else if(snapshot.val() === 31 && game.players >= 1){
+			$("#info").html("1...")
+		} else if(snapshot.val() === 30 && game.players >= 1){
+			$("#info").html("GO!! Make your choice")
 			database.ref("matchHappening").set(true)
-		} else if(snapshot.val() === 0){
-			$("#info").html("Determining what others picked")
+			$("#timer").css("visibility", "visible")
+			game.firstMatch = false;
+		} else if(snapshot.val() === 59){
+			$("#timer").css("visibility", "hidden")
+			if(game.firstMatch === false){$("#info").html("Time's Up!!")}
 			database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
 			var colorPick = '"#' + game.playerPick + '"'
 			$(JSON.parse(colorPick)).addClass("playerPick")
-			database.ref("matchHappening").set(false)
-			
+			database.ref("matchHappening").set(false)	
 		} else if(snapshot.val() === 55){
 			game.getOpponentPicks()
-			$("#info").html("Calculating Score")
-			
+			if(game.firstMatch === false){$("#info").html("Getting Opponents' Picks")}	
 		} else if(snapshot.val() === 50){
 			game.updateScore()
-			
-		} else if(snapshot.val() === 45 && game.players >=1){
+			if(game.firstMatch === false){
+				if(game.score > tempScore){
+					$("#info").html("YOU SCORED!!")
+				} else {
+					$("#info").html("You didn't score a point")
+				}
+			}
+		} else if(snapshot.val() === 45 ){
+			if(game.firstMatch === false){$("#info").html("Updating Score...")}
 			game.displayScore()
 			
-		} else if(snapshot.val() === 40){
+		} else if(snapshot.val() === 40 && game.players >=1){
+			if(game.firstMatch === false){$("#info").html("RESETTING MATCH!")}
 			game.rematch()
 		}
 	},

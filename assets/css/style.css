@@ -1,14 +1,57 @@
+body{
+	background-image: url(../images/gaming-pattern.png)
+}
+
 h1 {
 	text-align: center;
+	font-family: 'Audiowide', cursive;
+	font-weight: bold;
 }
 
 table {
 	width: 100%;
+	font-family: 'Inconsolata', monospace;
+	font-size: 16px;
 }
 
+button, label, input, {
+	font-family: 'Inconsolata', monospace;
+	font-size: 18px;
+}
 
+#timer{
+	visibility: hidden;
+}
+
+#timer, #timerNest, #info {
+	height: 30px;
+	background: black;
+}
+
+#timer, #info {
+	text-align: center;
+	font-family: 'Inconsolata', monospace;
+	font-size: 20px;
+	color: green;	
+}
+
+.col-md-9 {
+	background: white;
+}
+
+.col-md-3 {
+	background: lightgrey;
+}
+
+#buttons{
+	height:120px;
+	width:600px;
+	margin: auto;
+	text-align: center;
+}
 
 #gameDisplay{
+	margin: auto;
 	width: 500px;
 	height:500px;
 	position: relative;
