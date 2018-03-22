@@ -8,7 +8,6 @@ var game = {
 	score: 0, // local player score
 	playerPick: "noPick", //players choice to be pushed to firebase
 	momentTimer: undefined, //timer
-	timerRunning: false, //check if timer is running
 	database: undefined, // for reference to firebase
 	players: 0, //number of player need to get value from firebase and update
 	opponentPicks: [], //stores array of opponent choices pulled from firebase
@@ -82,37 +81,37 @@ var game = {
 
 		// updates player count locally when firebase updates player count
 		database.ref("Players").on("child_added", game.updatePlayerList)
-		database.ref("Players").on("child_removed", game.removePlayerList)
 
 		setInterval(game.countdown, 1000)
 
 		var gameTimer = database.ref("Timer")
-		gameTimer.on("value", function(snapshot){
-			if(snapshot.val() === 30 && game.players >= 1){
-				$("#info").html("Match is starting<br>Pick your choice")
-				database.ref("matchHappening").set(true)
-			} else if(snapshot.val() === 0){
-				$("#info").html("Determining what others picked")
-				database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
-				var colorPick = '"#' + game.playerPick + '"'
-				$(JSON.parse(colorPick)).addClass("playerPick")
-				database.ref("matchHappening").set(false)
-				
-			} else if(snapshot.val() === 55){
-				game.getOpponentPicks()
-				$("#info").html("Calculating Score")
-				
-			} else if(snapshot.val() === 50){
-				game.updateScore()
-				
-			} else if(snapshot.val() === 45 && game.players >=1){
-				game.displayScore()
-				
-			} else if(snapshot.val() === 40){
-				game.rematch()
-			}
-		})
+		gameTimer.on("value", game.gameTiming)
 
+	},
+	gameTiming: function(snapshot){
+		if(snapshot.val() === 30 && game.players >= 1){
+			$("#info").html("Match is starting<br>Pick your choice")
+			database.ref("matchHappening").set(true)
+		} else if(snapshot.val() === 0){
+			$("#info").html("Determining what others picked")
+			database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
+			var colorPick = '"#' + game.playerPick + '"'
+			$(JSON.parse(colorPick)).addClass("playerPick")
+			database.ref("matchHappening").set(false)
+			
+		} else if(snapshot.val() === 55){
+			game.getOpponentPicks()
+			$("#info").html("Calculating Score")
+			
+		} else if(snapshot.val() === 50){
+			game.updateScore()
+			
+		} else if(snapshot.val() === 45 && game.players >=1){
+			game.displayScore()
+			
+		} else if(snapshot.val() === 40){
+			game.rematch()
+		}
 	},
 	getOpponentPicks: function(){
 		var matchplayers = database.ref("Players")
@@ -238,7 +237,7 @@ var game = {
 			snapshot.forEach(function(child){
 				var player = child.val().name
 				var wins = child.val().wins
-				$("tbody").append("<tr id='" + game.playerID + "'><td>" + player + "</td><td>" + wins  + "</td></tr>")	
+				$("tbody").append("<tr><td>" + player + "</td><td>" + wins  + "</td></tr>")	
 			})
 		})
 	},
@@ -265,11 +264,8 @@ var game = {
 	updatePlayerList: function(snapshot){
 		var player = snapshot.val().name
 		var wins = snapshot.val().wins
-		$("tbody").append("<tr id='" + snapshot.val().name + "'><td>" + player + "</td><td>" + wins  + "</td></tr>")
+		$("tbody").append("<tr><td>" + player + "</td><td>" + wins  + "</td></tr>")
 
-	},
-	removePlayerList: function(snapshot){
-		$("tbody").remove("'#" + snapshot.val().name + "'")
 	},
 	rematch: function(){
 		game.allVis();
