@@ -9,6 +9,7 @@ var game = {
 	playerPick: "noPick", //players choice to be pushed to firebase
 	countdownID: undefined, //for clearing interval
 	timer: 20, //timer length
+	momentTimer: undefined,
 	timerRunning: false, //check if timer is running
 	database: undefined, // for reference to firebase
 	players: 0, //number of player need to get value from firebase and update
@@ -21,15 +22,15 @@ var game = {
 	decrementTimer: function(){
 		if(game.timer > 1){
 			game.timer--;
-			$("#timer").text(game.timer + "Secs")
+			$("#info").text(game.timer + "Secs")
 		} else {
 			clearInterval(game.countdownID);
-			$("#timer").text("Time is Up");
+			$("#info").text("Time is Up");
 			game.timerRunning = false;
 			database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
 
 			//lights up players button choice
-			var colorPick = '"#' + game.playerPick + 'pic"'
+			var colorPick = '"#' + game.playerPick + '"'
 			$(JSON.parse(colorPick)).addClass("playerPick")
 
 			//gets current opponent picks and then updates score
@@ -73,7 +74,7 @@ var game = {
 		game.loadButtons();
 		//gets number of players already in game
 		var playerCount = database.ref("playerCount")
-		playerCount.once("value", function(snapshot){
+		playerCount.on("value", function(snapshot){
 			game.players = snapshot.val()
 		});
 
@@ -98,22 +99,54 @@ var game = {
 
 
 		//Initiate match once there is more than one player and there isn't already a match in progress
-		var playerCount = database.ref()
-			playerCount.on("value", function(snap){
-				if(snap.child("playerCount").val() > 1 && snap.child("matchHappening").val() !== true){
-					playerCount.off()
-					game.countdown()
-				}
-				// if(snap.child("matchHappening") === true){
+		// var playerCount = database.ref()
+		// 	playerCount.on("value", function(snap){
+		// 		if(snap.child("playerCount").val() > 1 && snap.child("matchHappening").val() !== true){
+		// 			playerCount.off()
+		// 			game.countdown()
+		// 		}
+		// 		// if(snap.child("matchHappening") === true){
 				// 	playerCount.off()
 				// }
 				
-			});
+			// });
 
 		var update = function(){
-			$("#timer").html(moment().format(":ss"));
+			var timeLeft = 60 - moment().format("ss"); 
+			if(timeLeft === 60){
+				timeLeft = 0;
+			}
+			$("#timer").html(timeLeft);
+			game.momentTimer = timeLeft
+			database.ref().child("Timer").set(timeLeft)
 		}
 		setInterval(update, 1000)
+
+		var gameTimer = database.ref("Timer")
+		gameTimer.on("value", function(snapshot){
+			// console.log(game.players)
+			if(snapshot.val() === 30 && game.players >= 1){
+				$("#info").html("Match is starting<br>Pick your choice")
+			} else if(snapshot.val() === 0){
+				$("#info").html("Determining what others picked")
+				database.ref("Players").child(game.playerID).update({playerPick: game.playerPick});
+				var colorPick = '"#' + game.playerPick + '"'
+				$(JSON.parse(colorPick)).addClass("playerPick")
+				
+			} else if(snapshot.val() === 55){
+				game.getOpponentPicks()
+				$("#info").html("Calculating Score")
+				
+			} else if(snapshot.val() === 50){
+				game.updateScore()
+				
+			} else if(snapshot.val() === 45 && game.players >=1){
+				game.displayScore()
+				
+			} else if(snapshot.val() === 40){
+				game.rematch()
+			}
+		})
 
 	},
 	getOpponentPicks: function(){
@@ -233,7 +266,7 @@ var game = {
 			}
 		}
 
-		setTimeout(game.displayScore, 3000)
+		// setTimeout(game.displayScore, 3000)
 
 		
 	},
@@ -249,7 +282,7 @@ var game = {
 		})
 		database.ref("matchHappening").set(false)
 
-		setTimeout(game.rematch, 2000)
+
 
 
 	},
@@ -284,9 +317,8 @@ var game = {
 		game.allVis();
 		game.loadButtons();
 		game.timer = 20;
-		game.opponentPick = [];
+		game.opponentPicks = [];
 		game.playerPick = "noPick"
-		game.countdown();
 
 	}
 
