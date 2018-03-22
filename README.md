@@ -18,6 +18,7 @@ STILL TO DO
 	some limiter on spamming messages
 	increase chat options
 	better information posts when player can't do something
+	make it more mobile friendly
 
 
 BUGS
